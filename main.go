@@ -55,9 +55,9 @@ func main() {
 	for cc, err := os.Stdin.Read(buffer); buffer[0] != 'q' && err == nil && cc == 1; cc, err = os.Stdin.Read(buffer) {
 		r := rune(buffer[0])
 		if strconv.IsPrint(r) {
-			fmt.Printf("%d %c\n", buffer[0], r)
+			fmt.Printf("%d %c\r\n", buffer[0], r)
 		} else {
-			fmt.Printf("%d\n", buffer[0])
+			fmt.Printf("%d\r\n", buffer[0])
 		}
 	}
 	os.Exit(0)
