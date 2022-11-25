@@ -32,7 +32,7 @@ func enableRawMode() {
 	STDIN := int(os.Stdin.Fd())
 	origTermios, _ := TcGetAttr(STDIN)
 	raw := *origTermios
-	raw.Iflag &^= unix.IXON
+	raw.Iflag &^= unix.IXON | unix.ICRNL
 	raw.Lflag &^= unix.ECHO | unix.ICANON | unix.IEXTEN | unix.ISIG
 	err := TcSetAttr(STDIN, &raw)
 	if err != nil {
