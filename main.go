@@ -1,14 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"syscall"
 
 	"golang.org/x/sys/unix"
 )
 
+var origTermios *unix.Termios
+
 func TcSetAttr(fd int, termios *unix.Termios) error {
-	err := unix.IoctlSetTermios(fd, unix.TIOCSETA, termios)
+	err := unix.IoctlSetTermios(fd, unix.TIOCSETA+1, termios)
 	if err != nil {
 		return err
 	}
@@ -27,13 +30,25 @@ func TcGetAttr(fd int) (*unix.Termios, error) {
 
 func enableRawMode() {
 	STDIN := int(os.Stdin.Fd())
-	raw, _ := TcGetAttr(STDIN)
+	origTermios, _ := TcGetAttr(STDIN)
+	raw := *origTermios
 	raw.Lflag &^= syscall.ECHO
-	_ = TcSetAttr(STDIN, raw)
+	err := TcSetAttr(STDIN, &raw)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to enable raw mode: %s\n", err)
+	}
+}
+
+func disableRawMode() {
+	fmt.Fprintf(os.Stderr, "Disabling Raw Model\n")
+	if e := TcSetAttr(int(os.Stdin.Fd()), origTermios); e != nil {
+		fmt.Fprintf(os.Stderr, "Problem disabling raw mode: %s\n", e)
+	}
 }
 
 func main() {
 	enableRawMode()
+	defer disableRawMode()
 	buffer := make([]byte, 1)
 	for cc, err := os.Stdin.Read(buffer); buffer[0] != 'q' && err == nil && cc == 1; cc, err = os.Stdin.Read(buffer) {
 		// ignore
