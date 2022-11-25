@@ -61,9 +61,9 @@ func main() {
 
 	for cc, err = os.Stdin.Read(buffer); buffer[0] != 'q' && cc >= 0; cc, err = os.Stdin.Read(buffer) {
 		if buffer[0] > 20 && buffer[0] < 0x7f {
-			fmt.Printf("%d %c\r\n", buffer[0], cc)
+			fmt.Printf("%3d %d %c\r\n", buffer[0], buffer[0], cc)
 		} else {
-			fmt.Printf("%d\r\n", buffer[0])
+			fmt.Printf("%3d %d\r\n", buffer[0], cc)
 		}
 		buffer[0] = 0
 	}
