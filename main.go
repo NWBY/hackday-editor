@@ -111,7 +111,7 @@ func editorRefreshScreen() {
 }
 
 func editorDrawRows() {
-	for i := 0; i < 24; i++ {
+	for i := 0; i < E.screenRows; i++ {
 		io.WriteString(os.Stdout, "~\r\n")
 	}
 }
