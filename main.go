@@ -22,6 +22,7 @@ func TcSetAttr(fd int, termios *unix.Termios) error {
 func TcGetAttr(fd int) (*unix.Termios, error) {
 	termios, err := unix.IoctlGetTermios(fd, unix.TIOCGETA)
 	if err != nil {
+		log.Fatalf("Failed to get terminal attributes: %s\n", err)
 		return nil, err
 	}
 
@@ -40,14 +41,14 @@ func enableRawMode() {
 	raw.Cc[unix.VTIME+1] = 1
 	err := TcSetAttr(STDIN, &raw)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to enable raw mode: %s\n", err)
+		log.Fatalf("Failed to enable raw mode: %s\n", err)
 	}
 }
 
 func disableRawMode() {
 	err := TcSetAttr(int(os.Stdin.Fd()), origTermios)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Problem disabling raw mode: %s\n", err)
+		log.Fatalf("Failed to disable raw mode: %s\n", err)
 	}
 }
 
