@@ -79,7 +79,7 @@ func editorReadKey() byte {
 func editorProcessKeypress() {
 	c := editorReadKey()
 	switch c {
-	case ('q' & 0x1f):
+	case ('q' & 0x1f): // this means we need to use CTRL + Q to quit
 		io.WriteString(os.Stdout, "\x1b[2J")
 		io.WriteString(os.Stdout, "\x1b[H")
 		disableRawMode()
@@ -91,6 +91,14 @@ func editorProcessKeypress() {
 func editorRefreshScreen() {
 	io.WriteString(os.Stdout, "\x1b[2J")
 	io.WriteString(os.Stdout, "\x1b[H")
+	editorDrawRows()
+	io.WriteString(os.Stdout, "\x1b[H")
+}
+
+func editorDrawRows() {
+	for i := 0; i < 24; i++ {
+		io.WriteString(os.Stdout, "~\r\n")
+	}
 }
 
 /*** init ***/
