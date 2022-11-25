@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"syscall"
 
 	"golang.org/x/sys/unix"
 )
@@ -32,7 +31,7 @@ func enableRawMode() {
 	STDIN := int(os.Stdin.Fd())
 	origTermios, _ := TcGetAttr(STDIN)
 	raw := *origTermios
-	raw.Lflag &^= syscall.ECHO
+	raw.Lflag &^= unix.ECHO | unix.ICANON
 	err := TcSetAttr(STDIN, &raw)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to enable raw mode: %s\n", err)
@@ -40,9 +39,9 @@ func enableRawMode() {
 }
 
 func disableRawMode() {
-	fmt.Fprintf(os.Stderr, "Disabling Raw Model\n")
-	if e := TcSetAttr(int(os.Stdin.Fd()), origTermios); e != nil {
-		fmt.Fprintf(os.Stderr, "Problem disabling raw mode: %s\n", e)
+	err := TcSetAttr(int(os.Stdin.Fd()), origTermios)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Problem disabling raw mode: %s\n", err)
 	}
 }
 
