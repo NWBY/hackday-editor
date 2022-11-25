@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
-	"strconv"
 
 	"golang.org/x/sys/unix"
 )
@@ -36,6 +36,8 @@ func enableRawMode() {
 	raw.Oflag &^= unix.OPOST
 	raw.Cflag |= unix.CS8
 	raw.Lflag &^= unix.ECHO | unix.ICANON | unix.IEXTEN | unix.ISIG
+	raw.Cc[unix.VMIN+1] = 0
+	raw.Cc[unix.VTIME+1] = 1
 	err := TcSetAttr(STDIN, &raw)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to enable raw mode: %s\n", err)
@@ -53,13 +55,19 @@ func main() {
 	enableRawMode()
 	defer disableRawMode()
 	buffer := make([]byte, 1)
-	for cc, err := os.Stdin.Read(buffer); buffer[0] != 'q' && err == nil && cc == 1; cc, err = os.Stdin.Read(buffer) {
-		r := rune(buffer[0])
-		if strconv.IsPrint(r) {
-			fmt.Printf("%d %c\r\n", buffer[0], r)
+	var cc int
+	var err error
+
+	for cc, err = os.Stdin.Read(buffer); buffer[0] != 'q' && cc >= 0; cc, err = os.Stdin.Read(buffer) {
+		if buffer[0] > 20 && buffer[0] < 0x7f {
+			fmt.Printf("%d %c\r\n", buffer[0], cc)
 		} else {
 			fmt.Printf("%d\r\n", buffer[0])
 		}
+		buffer[0] = 0
 	}
-	os.Exit(0)
+	if err != nil {
+		disableRawMode()
+		log.Fatal(err)
+	}
 }
