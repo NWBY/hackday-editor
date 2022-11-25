@@ -10,6 +10,8 @@ import (
 
 /*** data ***/
 type editorConfig struct {
+	screenRows  int
+	screenCols  int
 	origTermios *unix.Termios
 }
 
@@ -40,6 +42,15 @@ func TcGetAttr(fd int) (*unix.Termios, error) {
 	}
 
 	return termios, nil
+}
+
+func getWindowSize() (*unix.Winsize, error) {
+	winSize, err := unix.IoctlGetWinsize(int(os.Stdin.Fd()), unix.TIOCGWINSZ)
+	if err != nil {
+		return nil, err
+	}
+
+	return winSize, nil
 }
 
 func enableRawMode() {
@@ -106,9 +117,20 @@ func editorDrawRows() {
 }
 
 /*** init ***/
+func initEditor() {
+	win, err := getWindowSize()
+	if err != nil {
+		log.Fatalf("Unable to get window size: %s\n", err)
+	}
+
+	E.screenCols = int(win.Col)
+	E.screenRows = int(win.Row)
+}
+
 func main() {
 	enableRawMode()
 	defer disableRawMode()
+	initEditor()
 
 	for {
 		editorRefreshScreen()
