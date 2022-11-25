@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"golang.org/x/sys/unix"
 )
@@ -50,7 +51,12 @@ func main() {
 	defer disableRawMode()
 	buffer := make([]byte, 1)
 	for cc, err := os.Stdin.Read(buffer); buffer[0] != 'q' && err == nil && cc == 1; cc, err = os.Stdin.Read(buffer) {
-		// ignore
+		r := rune(buffer[0])
+		if strconv.IsPrint(r) {
+			fmt.Printf("%d %c\n", buffer[0], r)
+		} else {
+			fmt.Printf("%d\n", buffer[0])
+		}
 	}
 	os.Exit(0)
 }
