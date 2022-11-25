@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -44,13 +46,38 @@ func TcGetAttr(fd int) (*unix.Termios, error) {
 	return termios, nil
 }
 
-func getWindowSize() (*unix.Winsize, error) {
-	winSize, err := unix.IoctlGetWinsize(int(os.Stdin.Fd()), unix.TIOCGWINSZ)
-	if err != nil {
-		return nil, err
+func getCursorPosition(rows *int, cols *int) error {
+	io.WriteString(os.Stdout, "\x1b[6n")
+	fmt.Printf("\r\n")
+	var buffer [1]byte
+	var cc int
+	for cc, _ = os.Stdin.Read(buffer[:]); cc == 1; cc, _ = os.Stdin.Read(buffer[:]) {
+		if buffer[0] > 20 && buffer[0] < 0x7e {
+		} else {
+			fmt.Printf("%d\r\n", buffer[0])
+		}
+		fmt.Printf("%d ('%c')\r\n", buffer[0], buffer[0])
 	}
 
-	return winSize, nil
+	editorReadKey()
+	return errors.New("could not get cursor position")
+}
+
+func getWindowSize(rows *int, cols *int) error {
+	winSize, err := unix.IoctlGetWinsize(int(os.Stdin.Fd()), unix.TIOCGWINSZ)
+
+	if true {
+		io.WriteString(os.Stdout, "\x1b[999C\x1b[999B")
+		return getCursorPosition(rows, cols)
+	}
+
+	if err == nil {
+		*rows = int(winSize.Row)
+		*cols = int(winSize.Col)
+
+		return nil
+	}
+	return errors.New("could not get window size")
 }
 
 func enableRawMode() {
@@ -118,13 +145,10 @@ func editorDrawRows() {
 
 /*** init ***/
 func initEditor() {
-	win, err := getWindowSize()
+	err := getWindowSize(&E.screenRows, &E.screenCols)
 	if err != nil {
 		log.Fatalf("Unable to get window size: %s\n", err)
 	}
-
-	E.screenCols = int(win.Col)
-	E.screenRows = int(win.Row)
 }
 
 func main() {
