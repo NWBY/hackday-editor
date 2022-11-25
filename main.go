@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 	"os"
 
@@ -82,12 +83,18 @@ func editorProcessKeypress() {
 	}
 }
 
+/*** output ***/
+func editorRefreshScreen() {
+	io.WriteString(os.Stdout, "\x1b[2J")
+}
+
 /*** init ***/
 func main() {
 	enableRawMode()
 	defer disableRawMode()
 
 	for {
+		editorRefreshScreen()
 		editorProcessKeypress()
 	}
 }
