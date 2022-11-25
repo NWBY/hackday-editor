@@ -8,8 +8,10 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+/*** data ***/
 var origTermios *unix.Termios
 
+/*** terminal ***/
 func TcSetAttr(fd int, termios *unix.Termios) error {
 	err := unix.IoctlSetTermios(fd, unix.TIOCSETA+1, termios)
 	if err != nil {
@@ -52,6 +54,7 @@ func disableRawMode() {
 	}
 }
 
+/*** init ***/
 func main() {
 	enableRawMode()
 	defer disableRawMode()
