@@ -9,7 +9,11 @@ import (
 )
 
 /*** data ***/
-var origTermios *unix.Termios
+type editorConfig struct {
+	origTermios *unix.Termios
+}
+
+var E editorConfig
 
 /*** terminal ***/
 func die(err error) {
@@ -40,8 +44,8 @@ func TcGetAttr(fd int) (*unix.Termios, error) {
 
 func enableRawMode() {
 	STDIN := int(os.Stdin.Fd())
-	origTermios, _ := TcGetAttr(STDIN)
-	raw := *origTermios
+	E.origTermios, _ = TcGetAttr(STDIN)
+	raw := *E.origTermios
 	raw.Iflag &^= unix.BRKINT | unix.ICRNL | unix.INPCK | unix.ISTRIP | unix.IXON
 	raw.Oflag &^= unix.OPOST
 	raw.Cflag |= unix.CS8
@@ -55,7 +59,7 @@ func enableRawMode() {
 }
 
 func disableRawMode() {
-	err := TcSetAttr(int(os.Stdin.Fd()), origTermios)
+	err := TcSetAttr(int(os.Stdin.Fd()), E.origTermios)
 	if err != nil {
 		log.Fatalf("Failed to disable raw mode: %s\n", err)
 	}
