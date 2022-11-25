@@ -32,7 +32,7 @@ func enableRawMode() {
 	STDIN := int(os.Stdin.Fd())
 	origTermios, _ := TcGetAttr(STDIN)
 	raw := *origTermios
-	raw.Lflag &^= unix.ECHO | unix.ICANON
+	raw.Lflag &^= unix.ECHO | unix.ICANON | unix.ISIG
 	err := TcSetAttr(STDIN, &raw)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to enable raw mode: %s\n", err)
